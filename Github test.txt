@@ -1,0 +1,58 @@
+import random
+from collections import Counter
+
+# ====================== 2026 MARCH MADNESS TEAMS ======================
+# Current Final Four stage (as of March 30, 2026)
+teams = {
+    "Duke": {"seed": 1, "region": "East"},
+    "UConn": {"seed": 2, "region": "East"},
+    "Arizona": {"seed": 1, "region": "West"},
+    "Michigan": {"seed": 1, "region": "Midwest"},
+    "Illinois": {"seed": 3, "region": "South"},
+    # Add more teams if you want to simulate from earlier rounds
+}
+
+# You can expand this list with all 68 teams if simulating the full bracket
+
+# ====================== SIMULATION FUNCTION ======================
+def simulate_game(team1, team2):
+    """Simulate a single game based on seed difference"""
+    seed_diff = team1["seed"] - team2["seed"]
+    
+    # Base win probability (lower seed is favored)
+    base_prob = 0.5 - (seed_diff * 0.08)   # Each seed difference ~8% advantage
+    
+    # Add some randomness (upsets can happen!)
+    prob_team1_wins = max(0.05, min(0.95, base_prob + random.uniform(-0.15, 0.15)))
+    
+    return team1 if random.random() < prob_team1_wins else team2
+
+
+def simulate_tournament(num_simulations=10000):
+    """Run many simulations of the Final Four + Championship"""
+    winners = []
+    
+    for _ in range(num_simulations):
+        # Final Four
+        winner1 = simulate_game(teams["UConn"], teams["Illinois"])      # East/South side
+        winner2 = simulate_game(teams["Michigan"], teams["Arizona"])    # Midwest/West side
+        
+        # Championship
+        champion = simulate_game(winner1, winner2)
+        winners.append(champion)
+    
+    # Count results
+    champion_counts = Counter(winners)
+    
+    print(f"🏀 March Madness 2026 Championship Predictions ({num_simulations:,} simulations)\n")
+    print("Team".ljust(12) + "Probability".ljust(15) + "Expected Wins")
+    print("-" * 45)
+    
+    for team, count in sorted(champion_counts.items(), key=lambda x: -x[1]):
+        prob = (count / num_simulations) * 100
+        print(f"{team:<12} {prob:6.1f}%       {prob/100:.2f}")
+
+# ====================== RUN THE SIMULATION ======================
+if __name__ == "__main__":
+    random.seed(42)  # For reproducible results
+    simulate_tournament(20000)
